@@ -7,20 +7,24 @@ public class PlayerMove : MonoBehaviour // 클래스 이름 PlayermOVE를 PlayerMove로
     // 목표
     // "키보드 입력"에 따라 "방향"을 구하고 그 방향으로 이동시키고 싶다.
     // 추가 목표: 지정된 영역 내에서만 이동하며, Q/E 키로 속도를 조절한다.
+    // 최종 목표: 화면 양쪽 끝으로 가면 반대쪽 끝에서 다시 나타나는 워프 기능을 추가한다.
+
 
     // 구현 순서 :
     // 1. 키보드 입력
     // 2. 방향 구하는 방법
-    // 3. 이동 및 영역 제한
+    // 3. 이동 및 워프 처리
     // 4. 속도 조절 (Q, E 키)
 
     // 필요 속성 :
+    [Header("능력치")]
     public float Speed = 3;             // 현재 이동 속도
     public float maxSpeed = 10f;        // 플레이어의 최대 이동 속도
     public float minSpeed = 1f;         // 플레이어의 최소 이동 속도
     public float speedIncrement = 0.5f; // Q/E 키를 눌렀을 때 속도 증감량
 
-    // 이동 제한 영역 (Hierarchy 창에서 조절 가능하도록 public으로 설정)
+    // 이동 범위 (Hierarchy 창에서 조절 가능하도록 public으로 설정)
+    [Header("이동범위")]
     public float minX = -8f;            // 이동 가능한 최소 X 좌표       
     public float maxX = 8f;             // 이동 가능한 최대 X 좌표
     public float minY = -4.5f;          // 이동 가능한 최소 Y 좌표
@@ -54,10 +58,25 @@ public class PlayerMove : MonoBehaviour // 클래스 이름 PlayermOVE를 PlayerMove로
         // 컴퓨터1 : 50FPS : Update -> 초당 50번 실행 -> 10 * 50 = 500 * Time.deltaTime = 두개의 값이 같아진다.
         // 컴퓨터2 : 100FPS : -> 초당 100번 실행 -> 10 * 100 = 1000 * Time.deltaTime
 
-        // 3.1. 이동 제한 영역을 벗어나지 않도록 clamp (제한)
-        // 계산된 새로운 위치가 설정된 경계 내에 있도록 제한합니다.
-        newPosition.x = Mathf.Clamp(newPosition.x, minX, maxX); // X 좌표를 최소 X와 최대 X 사이로 제한
-        newPosition.y = Mathf.Clamp(newPosition.y, minY, maxY); // Y 좌표를 최소 Y와 최대 Y 사이로 제한
+        // 3.1. 이동 제한 영역을 벗어나면 반대편에서 나타나도록 처리 (워프 기능)
+        // 기존의 Clamp 로직을 제거하고, 경계를 벗어나는 경우 위치를 재설정합니다.
+        if (newPosition.x < minX) // 왼쪽 경계를 벗어나면
+        {
+            newPosition.x = maxX; // 오른쪽 끝으로 워프
+        }
+        else if (newPosition.x > maxX) // 오른쪽 경계를 벗어나면
+        {
+            newPosition.x = minX; // 왼쪽 끝으로 워프
+        }
+
+        if (newPosition.y < minY) // 아래쪽 경계를 벗어나면
+        {
+            newPosition.y = maxY; // 위쪽 끝으로 워프
+        }
+        else if (newPosition.y > maxY) // 위쪽 경계를 벗어나면
+        {
+            newPosition.y = minY; // 아래쪽 끝으로 워프
+        }
 
         transform.position = newPosition;           // 새로운 위치로 갱신
 
