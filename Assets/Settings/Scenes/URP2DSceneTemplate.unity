@@ -371,13 +371,15 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   Speed: 10
-  maxSpeed: 30
-  minSpeed: 1
-  speedIncrement: 0.1
-  minX: -2.36
-  maxX: 2.36
-  minY: -4.95
-  maxY: 4.89
+  MaxSpeed: 10
+  MinSpeed: 1
+  SpeedIncrement: 0.5
+  ShiftSpeedMultiplier: 5
+  ReturnToOriginSpeed: 2
+  minX: -8
+  maxX: 8
+  minY: -4.5
+  maxY: 4.5
 --- !u!212 &1359954650
 SpriteRenderer:
   m_ObjectHideFlags: 0

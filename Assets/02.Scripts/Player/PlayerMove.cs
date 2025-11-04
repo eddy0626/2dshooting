@@ -17,18 +17,26 @@ public class PlayerMove : MonoBehaviour
 
     [Header("능력치")]
     public float Speed = 3f;             // 현재 플레이어의 기본 이동 속도
-    public float maxSpeed = 10f;        // 플레이어의 최대 이동 속도
-    public float minSpeed = 1f;         // 플레이어의 최소 이동 속도
-    public float speedIncrement = 0.5f; // Q/E 키를 눌렀을 때 속도 증감량
-    public float shiftSpeedMultiplier = 1.2f; // Shift 키를 눌렀을 때 기본 속도에 곱해지는 배율
-    public float returnToOriginSpeed = 2f;    // R 키를 눌렀을 때 원점으로 돌아가는 속도
+    public float MaxSpeed = 10f;        // 플레이어의 최대 이동 속도 (maxSpeed -> MaxSpeed)
+    public float MinSpeed = 1f;         // 플레이어의 최소 이동 속도 (minSpeed -> MinSpeed)
+    public float SpeedIncrement = 0.5f; // Q/E 키를 눌렀을 때 속도 증감량 (speedIncrement -> SpeedIncrement)
+    public float ShiftSpeedMultiplier = 1.2f; // Shift 키를 눌렀을 때 기본 속도에 곱해지는 배율 (shiftSpeedMultiplier -> ShiftSpeedMultiplier)
+    public float ReturnToOriginSpeed = 2f;    // R 키를 눌렀을 때 원점으로 돌아가는 속도 (returnToOriginSpeed -> ReturnToOriginSpeed)
+
+    [Header("시작위치")]
+    private Vector2 _originPosition;
 
     // 이동 범위 (Hierarchy 창에서 조절 가능하도록 public으로 설정)
     [Header("이동범위")]
-    public float minX = -8f;            // 이동 가능한 최소 X 좌표
+    public float minX = -8f;            // 이동 가능한 최소 X 좌표       
     public float maxX = 8f;             // 이동 가능한 최대 X 좌표
     public float minY = -4.5f;          // 이동 가능한 최소 Y 좌표
     public float maxY = 4.5f;           // 이동 가능한 최대 Y 좌표
+
+    private void Start()
+    {
+        _originPosition = transform.position;
+    }
 
     /// <summary>
     /// 매 프레임마다 호출되어 플레이어의 이동과 관련된 로직을 처리합니다.
@@ -66,7 +74,7 @@ public class PlayerMove : MonoBehaviour
         float effectiveSpeed = Speed;
         if (Input.GetKey(KeyCode.LeftShift) || Input.GetKey(KeyCode.RightShift))
         {
-            effectiveSpeed *= shiftSpeedMultiplier; // Shift 키가 눌려있으면 속도 증가
+            effectiveSpeed *= ShiftSpeedMultiplier; // Shift 키가 눌려있으면 속도 증가 (shiftSpeedMultiplier -> ShiftSpeedMultiplier)
         }
         return effectiveSpeed;
     }
@@ -98,7 +106,8 @@ public class PlayerMove : MonoBehaviour
         // 플레이어의 현재 위치에서 원점까지의 방향을 계산합니다.
         Vector3 directionToOrigin = (Vector3.zero - transform.position).normalized;
         // transform.Translate를 사용하여 월드 좌표계에서 원점을 향해 이동합니다.
-        transform.Translate(directionToOrigin * returnToOriginSpeed * Time.deltaTime, Space.World);
+        // 이때 ReturnToOriginSpeed를 사용하여 서서히 이동합니다.
+        transform.Translate(directionToOrigin * ReturnToOriginSpeed * Time.deltaTime, Space.World); // returnToOriginSpeed -> ReturnToOriginSpeed
     }
 
     /// <summary>
@@ -138,14 +147,14 @@ public class PlayerMove : MonoBehaviour
     {
         if (Input.GetKeyDown(KeyCode.Q)) // Q 키가 눌렸을 때 (속도 증가)
         {
-            // 현재 속도를 speedIncrement만큼 증가시키고 maxSpeed를 초과하지 않도록 제한합니다.
-            Speed = Mathf.Min(Speed + speedIncrement, maxSpeed);
+            // 현재 속도를 SpeedIncrement만큼 증가시키고 MaxSpeed를 초과하지 않도록 제한합니다.
+            Speed = Mathf.Min(Speed + SpeedIncrement, MaxSpeed); // speedIncrement -> SpeedIncrement, maxSpeed -> MaxSpeed 반영
             Debug.Log($"Speed increased to: {Speed}"); // 디버그 로그 출력
         }
         if (Input.GetKeyDown(KeyCode.E)) // E 키가 눌렸을 때 (속도 감소)
         {
-            // 현재 속도를 speedIncrement만큼 감소시키고 minSpeed 미만으로 내려가지 않도록 제한합니다.
-            Speed = Mathf.Max(Speed - speedIncrement, minSpeed);
+            // 현재 속도를 SpeedIncrement만큼 감소시키고 MinSpeed 미만으로 내려가지 않도록 제한합니다.
+            Speed = Mathf.Max(Speed - SpeedIncrement, MinSpeed); // speedIncrement -> SpeedIncrement, minSpeed -> MinSpeed 반영
             Debug.Log($"Speed decreased to: {Speed}"); // 디버그 로그 출력
         }
     }
