@@ -1,161 +1,214 @@
 using UnityEngine;
 
-
 /// <summary>
-/// 플레이어의 이동을 담당하는 스크립트입니다.
-/// 키보드 입력에 따라 플레이어를 이동시키고, 지정된 영역 내에서만 움직임을 허용하며,
-/// Q/E 키로 속도 조절, Shift 키로 일시적인 속도 증가, R 키로 원점 복귀 기능을 제공합니다.
+/// 플레이어의 이동, 체력, 피격을 모두 담당하는 스크립트입니다.
+/// 1. 키보드로 이동합니다. (워프, 속도 조절 포함)
+/// 2. '적 총알' 또는 '적 몸체'와 충돌하면 체력이 1 감소합니다.
+/// 3. 총 체력은 3이며, 0이 되면 플레이어가 파괴됩니다.
 /// </summary>
 public class PlayerMove : MonoBehaviour
 {
-    // 목표 설명:
-    // 1. 키보드 입력에 따라 플레이어를 이동시킵니다.
-    // 2. 지정된 이동 범위 내에서만 플레이어가 움직이도록 합니다. (워프 기능 포함)
-    // 3. Q/E 키로 플레이어의 기본 이동 속도를 조절합니다.
-    // 4. Shift 키를 누르는 동안 이동 속도를 증가시킵니다.
-    // 5. R 키를 길게 누르면 플레이어를 서서히 원점으로 복귀시킵니다.
-
     [Header("능력치")]
-    public float Speed = 3f;             // 현재 플레이어의 기본 이동 속도
-    public float MaxSpeed = 10f;        // 플레이어의 최대 이동 속도 (maxSpeed -> MaxSpeed)
-    public float MinSpeed = 1f;         // 플레이어의 최소 이동 속도 (minSpeed -> MinSpeed)
-    public float SpeedIncrement = 0.5f; // Q/E 키를 눌렀을 때 속도 증감량 (speedIncrement -> SpeedIncrement)
-    public float ShiftSpeedMultiplier = 1.2f; // Shift 키를 눌렀을 때 기본 속도에 곱해지는 배율 (shiftSpeedMultiplier -> ShiftSpeedMultiplier)
-    public float ReturnToOriginSpeed = 2f;    // R 키를 눌렀을 때 원점으로 돌아가는 속도 (returnToOriginSpeed -> ReturnToOriginSpeed)
+    public float Speed = 3f;
+    public float MaxSpeed = 10f;
+    public float MinSpeed = 1f;
+    public float SpeedIncrement = 0.5f;
+    public float ShiftSpeedMultiplier = 1.2f;
+    public float ReturnToOriginSpeed = 2f;
 
     [Header("시작위치")]
     private Vector2 _originPosition;
 
-    // 이동 범위 (Hierarchy 창에서 조절 가능하도록 public으로 설정)
     [Header("이동범위")]
-    public float minX = -8f;            // 이동 가능한 최소 X 좌표       
-    public float maxX = 8f;             // 이동 가능한 최대 X 좌표
-    public float minY = -4.5f;          // 이동 가능한 최소 Y 좌표
-    public float maxY = 4.5f;           // 이동 가능한 최대 Y 좌표
+    public float minX = -8f;
+    public float maxX = 8f;
+    public float minY = -4.5f;
+    public float maxY = 4.5f;
 
-    private void Start()
+    [Header("플레이어 체력")]
+    public int MaxPlayerHealth = 3;  // 플레이어의 최대 체력 (적과 충돌 횟수)
+    private int _currentPlayerHealth; // 현재 플레이어 체력
+    private bool _isDead = false;     // 사망 여부 (중복 사망 방지)
+
+    /// <summary>
+    /// 현재 체력을 반환합니다.
+    /// </summary>
+    public int GetCurrentHealth()
     {
-        _originPosition = transform.position;
+        return _currentPlayerHealth;
     }
 
     /// <summary>
-    /// 매 프레임마다 호출되어 플레이어의 이동과 관련된 로직을 처리합니다.
-    /// 키보드 입력 감지, 속도 계산, 이동 및 워프, 속도 조절 기능을 포함합니다.
+    /// 플레이어의 초기 위치와 체력을 설정합니다.
+    /// </summary>
+    private void Start()
+    {
+        _originPosition = transform.position; // 현재 위치를 시작 위치로 저장
+        _currentPlayerHealth = MaxPlayerHealth; // 현재 체력을 최대 체력으로 초기화
+        Debug.Log($"Player initialized with {MaxPlayerHealth} health.");
+    }
+
+    /// <summary>
+    /// 매 프레임마다 호출되어 플레이어의 이동 로직을 처리합니다.
     /// </summary>
     void Update()
     {
-        // R 키가 눌렸는지 확인하고, 눌렸다면 원점 복귀 로직을 수행합니다.
+        // 플레이어가 죽었다면 이동 로직을 실행하지 않습니다.
+        if (_isDead) return;
+
+        // R 키 원점 복귀 로직
         if (Input.GetKey(KeyCode.R))
         {
             HandleReturnToOrigin();
         }
-        else // R 키가 눌리지 않았을 때만 일반 이동 및 워프 로직을 수행합니다.
+        else // 일반 이동
         {
-            // 현재 프레임에 적용될 실제 이동 속도를 계산합니다 (Shift 버스트 포함).
             float effectiveSpeed = GetEffectiveSpeed();
-
-            // 키보드 입력에 따라 플레이어를 이동시킵니다.
             HandleManualMovement(effectiveSpeed);
         }
 
-        // 플레이어 위치가 이동 범위를 벗어나면 반대편으로 워프시킵니다.
+        // 워프 및 속도 조절
         ApplyBoundaryWarp();
-
-        // Q/E 키를 이용한 이동 속도 조절을 처리합니다.
         HandleSpeedAdjustments();
     }
 
     /// <summary>
-    /// 현재 유효 이동 속도를 계산합니다. Shift 키가 눌려있으면 속도 배율을 적용합니다.
+    /// 다른 2D 트리거 콜라이더가 플레이어에 진입했을 때 호출됩니다.
+    /// '적 총알'과 '적 몸체' 충돌을 모두 감지합니다.
     /// </summary>
-    /// <returns>적용될 최종 이동 속도</returns>
+    private void OnTriggerEnter2D(Collider2D other)
+    {
+        // 이미 죽었다면 아무것도 처리하지 않습니다.
+        if (_isDead) return;
+
+        // 1. '적 총알'에 맞았는지 확인
+        if (other.CompareTag("Bullet"))
+        {
+            Bullet bullet = other.GetComponent<Bullet>();
+
+            // ▼▼▼▼▼ [여기 수정됨!] ▼▼▼▼▼
+            // 'Bullet.'을 지워서 'BulletOwner'로 수정
+            if (bullet != null && bullet.Owner == BulletOwner.Enemy)
+            // ▲▲▲▲▲ [여기 수정됨!] ▲▲▲▲▲
+            {
+                Destroy(other.gameObject); // 적 총알 파괴
+                TakeDamage(1); // 체력 1 감소
+            }
+        }
+
+        // 2. '적 몸체'와 부딪혔는지 확인
+        if (other.CompareTag("Enemy"))
+        {
+            // 몸체 충돌 시 체력 1 감소
+            TakeDamage(1);
+
+            // 플레이어가 아직 살아있다면, 연속 충돌 방지를 위해 적을 파괴
+            if (!_isDead)
+            {
+                // Enemy 스크립트의 Die()를 호출하는 것이 더 안전함
+                Enemy enemy = other.GetComponentInParent<Enemy>();
+                if (enemy != null)
+                {
+                    enemy.Die();
+                }
+                else
+                {
+                    // Enemy 스크립트를 못찾으면 그냥 오브젝트 파괴
+                    Destroy(other.gameObject);
+                }
+            }
+        }
+    }
+
+    /// <summary>
+    /// 플레이어의 체력을 감소시키고 사망 여부를 확인합니다.
+    /// </summary>
+    /// <param name="damage">받은 대미지</param>
+    private void TakeDamage(int damage)
+    {
+        if (_isDead) return; // 중복 방지
+
+        _currentPlayerHealth -= damage;
+        Debug.Log($"Player hit! Remaining health: {_currentPlayerHealth}/{MaxPlayerHealth}");
+
+        if (_currentPlayerHealth <= 0)
+        {
+            Die();
+        }
+    }
+
+    /// <summary>
+    /// 플레이어가 죽었을 때 호출되는 메서드입니다.
+    /// </summary>
+    private void Die()
+    {
+        if (_isDead) return; // 중복 사망 방지
+        _isDead = true;
+
+        Debug.Log("Player died!");
+        Destroy(gameObject); // 현재 플레이어 게임 오브젝트를 파괴합니다.
+    }
+
+    /// <summary>
+    /// 플레이어의 체력을 회복합니다.
+    /// </summary>
+    /// <param name="amount">회복할 체력량</param>
+    public void Heal(int amount)
+    {
+        if (_isDead) return; // 죽었으면 회복 안 됨
+
+        _currentPlayerHealth = Mathf.Min(_currentPlayerHealth + amount, MaxPlayerHealth);
+        Debug.Log($"Player healed! Current health: {_currentPlayerHealth}/{MaxPlayerHealth}");
+    }
+
+    // --- (아래는 이동 관련 헬퍼 메서드들) ---
+
     private float GetEffectiveSpeed()
     {
         float effectiveSpeed = Speed;
         if (Input.GetKey(KeyCode.LeftShift) || Input.GetKey(KeyCode.RightShift))
         {
-            effectiveSpeed *= ShiftSpeedMultiplier; // Shift 키가 눌려있으면 속도 증가 (shiftSpeedMultiplier -> ShiftSpeedMultiplier)
+            effectiveSpeed *= ShiftSpeedMultiplier;
         }
         return effectiveSpeed;
     }
 
-    /// <summary>
-    /// 키보드 (WASD 또는 화살표) 입력을 받아 플레이어를 이동시킵니다.
-    /// </summary>
-    /// <param name="effectiveSpeed">현재 적용될 이동 속도</param>
     private void HandleManualMovement(float effectiveSpeed)
     {
-        // 수평 및 수직 입력 값을 가져옵니다.
         float horizontalInput = Input.GetAxisRaw("Horizontal");
         float verticalInput = Input.GetAxisRaw("Vertical");
-
-        // 입력으로부터 방향 벡터를 생성하고 정규화합니다.
-        // 정규화는 대각선 이동 시 속도가 빨라지는 것을 방지합니다.
         Vector2 direction = new Vector2(horizontalInput, verticalInput).normalized;
-
-        // 새로운 위치를 계산합니다: 현재 위치 + (방향 * 유효 속도 * Time.deltaTime)
         Vector2 newPosition = (Vector2)transform.position + direction * effectiveSpeed * Time.deltaTime;
-        transform.position = newPosition; // 계산된 새로운 위치로 플레이어를 이동시킵니다.
+        transform.position = newPosition;
     }
 
-    /// <summary>
-    /// 'R' 키가 눌렸을 때 플레이어를 서서히 원점(0,0,0)으로 이동시킵니다.
-    /// </summary>
     private void HandleReturnToOrigin()
     {
-        // 플레이어의 현재 위치에서 원점까지의 방향을 계산합니다.
-        Vector3 directionToOrigin = (Vector3.zero - transform.position).normalized;
-        // transform.Translate를 사용하여 월드 좌표계에서 원점을 향해 이동합니다.
-        // 이때 ReturnToOriginSpeed를 사용하여 서서히 이동합니다.
-        transform.Translate(directionToOrigin * ReturnToOriginSpeed * Time.deltaTime, Space.World); // returnToOriginSpeed -> ReturnToOriginSpeed
+        Vector3 directionToOrigin = ((Vector3)_originPosition - transform.position).normalized;
+        transform.Translate(directionToOrigin * ReturnToOriginSpeed * Time.deltaTime, Space.World);
     }
 
-    /// <summary>
-    /// 플레이어가 이동 범위를 벗어나면 반대편에서 나타나도록 워프 효과를 적용합니다.
-    /// </summary>
     private void ApplyBoundaryWarp()
     {
-        Vector3 currentPosition = transform.position; // 현재 플레이어 위치
-
-        // X축 워프 처리
-        if (currentPosition.x < minX) // 왼쪽 경계를 벗어나면
-        {
-            currentPosition.x = maxX; // 오른쪽 끝으로 워프
-        }
-        else if (currentPosition.x > maxX) // 오른쪽 경계를 벗어나면
-        {
-            currentPosition.x = minX; // 왼쪽 끝으로 워프
-        }
-
-        // Y축 워프 처리
-        if (currentPosition.y < minY) // 아래쪽 경계를 벗어나면
-        {
-            currentPosition.y = maxY; // 위쪽 끝으로 워프
-        }
-        else if (currentPosition.y > maxY) // 위쪽 경계를 벗어나면
-        {
-            currentPosition.y = minY; // 아래쪽 끝으로 워프
-        }
-
-        transform.position = currentPosition; // 워프가 적용된 최종 위치로 갱신
+        Vector3 currentPosition = transform.position;
+        if (currentPosition.x < minX) currentPosition.x = maxX;
+        else if (currentPosition.x > maxX) currentPosition.x = minX;
+        if (currentPosition.y < minY) currentPosition.y = maxY;
+        else if (currentPosition.y > maxY) currentPosition.y = minY;
+        transform.position = currentPosition;
     }
 
-    /// <summary>
-    /// 'Q' 및 'E' 키 입력을 통해 플레이어의 기본 이동 속도를 조절합니다.
-    /// </summary>
     private void HandleSpeedAdjustments()
     {
-        if (Input.GetKeyDown(KeyCode.Q)) // Q 키가 눌렸을 때 (속도 증가)
+        if (Input.GetKeyDown(KeyCode.Q))
         {
-            // 현재 속도를 SpeedIncrement만큼 증가시키고 MaxSpeed를 초과하지 않도록 제한합니다.
-            Speed = Mathf.Min(Speed + SpeedIncrement, MaxSpeed); // speedIncrement -> SpeedIncrement, maxSpeed -> MaxSpeed 반영
-            Debug.Log($"Speed increased to: {Speed}"); // 디버그 로그 출력
+            Speed = Mathf.Min(Speed + SpeedIncrement, MaxSpeed);
+            Debug.Log($"Speed increased to: {Speed}");
         }
-        if (Input.GetKeyDown(KeyCode.E)) // E 키가 눌렸을 때 (속도 감소)
+        if (Input.GetKeyDown(KeyCode.E))
         {
-            // 현재 속도를 SpeedIncrement만큼 감소시키고 MinSpeed 미만으로 내려가지 않도록 제한합니다.
-            Speed = Mathf.Max(Speed - SpeedIncrement, MinSpeed); // speedIncrement -> SpeedIncrement, minSpeed -> MinSpeed 반영
-            Debug.Log($"Speed decreased to: {Speed}"); // 디버그 로그 출력
+            Speed = Mathf.Max(Speed - SpeedIncrement, MinSpeed);
+            Debug.Log($"Speed decreased to: {Speed}");
         }
     }
 }

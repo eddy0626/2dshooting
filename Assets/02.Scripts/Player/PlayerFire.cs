@@ -21,6 +21,7 @@ public class PlayerFire : MonoBehaviour
 
     [Header("발사 설정")]
     public float FireCooldown = 0.6f; // 총알 발사 간의 최소 시간 (쿨타임)
+    public float MinFireCooldown = 0.1f; // 최소 발사 쿨타임 (아이템으로 이보다 빠르게 할 수 없음)
 
     private float _lastFireTime = 0f; // 마지막으로 총알을 발사한 게임 시간
     private bool _isAutoFire = true;  // 자동 공격 모드 활성화 여부 (기본값: true)
