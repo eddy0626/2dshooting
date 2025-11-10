@@ -30,6 +30,11 @@ public class PlayerMove : MonoBehaviour
     private int _currentPlayerHealth; // 현재 플레이어 체력
     private bool _isDead = false;     // 사망 여부 (중복 사망 방지)
 
+    [Header("애니메이션")]
+    private Animator _animator; // 애니메이터 컴포넌트 참조
+    private bool _hasAnimator = false; // Animator가 있는지 여부
+    private bool _hasMoveXParameter = false; // MoveX 파라미터가 있는지 여부
+
     /// <summary>
     /// 현재 체력을 반환합니다.
     /// </summary>
@@ -45,6 +50,34 @@ public class PlayerMove : MonoBehaviour
     {
         _originPosition = transform.position; // 현재 위치를 시작 위치로 저장
         _currentPlayerHealth = MaxPlayerHealth; // 현재 체력을 최대 체력으로 초기화
+
+        // Animator 컴포넌트 가져오기 및 검증
+        _animator = GetComponent<Animator>();
+        if (_animator != null)
+        {
+            _hasAnimator = true;
+            // MoveX 파라미터가 존재하는지 확인
+            foreach (AnimatorControllerParameter param in _animator.parameters)
+            {
+                if (param.name == "MoveX")
+                {
+                    _hasMoveXParameter = true;
+                    break;
+                }
+            }
+
+            if (!_hasMoveXParameter)
+            {
+                Debug.LogWarning("Animator Controller에 'MoveX' Float 파라미터가 없습니다. " +
+                    "Assets/07.Animations/Player/PlayerAnimator.controller를 열어 'MoveX' Float 파라미터를 추가하세요.");
+            }
+        }
+        else
+        {
+            Debug.LogWarning("Player GameObject에 Animator 컴포넌트가 없습니다. " +
+                "Inspector에서 Animator를 추가하고 PlayerAnimator.controller를 할당하세요.");
+        }
+
         Debug.Log($"Player initialized with {MaxPlayerHealth} health.");
     }
 
@@ -70,6 +103,9 @@ public class PlayerMove : MonoBehaviour
         // 워프 및 속도 조절
         ApplyBoundaryWarp();
         HandleSpeedAdjustments();
+
+        // 애니메이션 업데이트
+        UpdateAnimation();
     }
 
     /// <summary>
@@ -209,6 +245,32 @@ public class PlayerMove : MonoBehaviour
         {
             Speed = Mathf.Max(Speed - SpeedIncrement, MinSpeed);
             Debug.Log($"Speed decreased to: {Speed}");
+        }
+    }
+
+    /// <summary>
+    /// 입력에 따라 애니메이션을 업데이트합니다.
+    /// </summary>
+    private void UpdateAnimation()
+    {
+        // Animator가 없거나 MoveX 파라미터가 없으면 실행하지 않음
+        if (!_hasAnimator || !_hasMoveXParameter) return;
+
+        // 좌우 입력 감지
+        float horizontalInput = Input.GetAxisRaw("Horizontal");
+
+        // MoveX 파라미터 설정: -1 (왼쪽), 0 (idle), 1 (오른쪽)
+        if (horizontalInput < 0)
+        {
+            _animator.SetFloat("MoveX", -1f); // 왼쪽
+        }
+        else if (horizontalInput > 0)
+        {
+            _animator.SetFloat("MoveX", 1f); // 오른쪽
+        }
+        else
+        {
+            _animator.SetFloat("MoveX", 0f); // Idle
         }
     }
 }

@@ -1,3 +1,4 @@
+using System.Collections;
 using UnityEngine;
 
 /// <summary>
@@ -12,6 +13,13 @@ public class Enemy : MonoBehaviour
 
     private int _currentHealth;
     private bool _isDying = false; // 중복 사망 방지 플래그
+
+    [Header("Hit 애니메이션")]
+    [SerializeField] private float HitFlashDuration = 0.15f; // Hit 깜빡임 지속 시간
+    [SerializeField] private Color HitFlashColor = Color.red; // Hit 시 깜빡일 색상
+    private SpriteRenderer _spriteRenderer;
+    private Color _originalColor;
+    private bool _isPlayingHitEffect = false;
 
     // ▼▼▼ [새로 추가할 변수] 아이템 드랍 설정 ▼▼▼
     [Header("아이템 드랍")]
@@ -34,6 +42,17 @@ public class Enemy : MonoBehaviour
     void Start()
     {
         _currentHealth = MaxHealth;
+
+        // SpriteRenderer 컴포넌트 가져오기
+        _spriteRenderer = GetComponent<SpriteRenderer>();
+        if (_spriteRenderer != null)
+        {
+            _originalColor = _spriteRenderer.color;
+        }
+        else
+        {
+            Debug.LogWarning("Enemy: SpriteRenderer를 찾을 수 없습니다. Hit 애니메이션이 작동하지 않습니다.");
+        }
     }
 
     /// <summary>
@@ -46,6 +65,12 @@ public class Enemy : MonoBehaviour
 
         _currentHealth -= damage;
         Debug.Log($"Enemy {gameObject.name} took {damage} damage. Current Health: {_currentHealth}/{MaxHealth}");
+
+        // Hit 효과 재생
+        if (_spriteRenderer != null && !_isPlayingHitEffect)
+        {
+            StartCoroutine(PlayHitEffect());
+        }
 
         if (_currentHealth <= 0)
         {
@@ -116,5 +141,24 @@ public class Enemy : MonoBehaviour
     public bool IsDying()
     {
         return _isDying;
+    }
+
+    /// <summary>
+    /// Hit 효과를 재생합니다. (스프라이트 색상을 깜빡입니다)
+    /// </summary>
+    private IEnumerator PlayHitEffect()
+    {
+        _isPlayingHitEffect = true;
+
+        // 원래 색상을 Hit 색상으로 변경
+        _spriteRenderer.color = HitFlashColor;
+
+        // 설정된 시간만큼 대기
+        yield return new WaitForSeconds(HitFlashDuration);
+
+        // 원래 색상으로 복구
+        _spriteRenderer.color = _originalColor;
+
+        _isPlayingHitEffect = false;
     }
 }
