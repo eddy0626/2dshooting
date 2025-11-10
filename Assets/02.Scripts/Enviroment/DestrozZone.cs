@@ -16,10 +16,16 @@ public class DestrozZone : MonoBehaviour
     /// <param name="other">이 트리거에 진입한 다른 Collider2D 컴포넌트</param>
     private void OnTriggerEnter2D(Collider2D other)
     {
-        // 트리거에 진입한 게임 오브젝트를 파괴합니다.
-        // Destroy(other.gameObject)는 충돌한 대상 오브젝트를 파괴하며,
-        // Destroy(gameObject)는 이 스크립트가 붙어있는 DestrozZone 자체를 파괴합니다.
-        // 여기서는 충돌한 대상 오브젝트를 파괴하는 것이 목표이므로 other.gameObject를 사용합니다.
+        // 적이 맵을 이탈한 경우, Enemy.Die()를 호출하여 아이템 드랍이 되도록 합니다.
+        Enemy enemy = other.GetComponent<Enemy>();
+        if (enemy != null)
+        {
+            Debug.Log($"DestrozZone: Enemy {other.gameObject.name}이(가) 맵을 이탈하여 Die() 호출됨.");
+            enemy.Die();
+            return;
+        }
+
+        // 총알, 아이템 등 다른 오브젝트는 그냥 파괴합니다.
         Debug.Log($"DestrozZone: {other.gameObject.name}이(가) 파괴되었습니다.");
         Destroy(other.gameObject);
     }

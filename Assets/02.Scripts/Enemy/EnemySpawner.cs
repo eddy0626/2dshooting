@@ -2,22 +2,27 @@ using UnityEngine;
 
 /// <summary>
 /// 적 몬스터를 주기적으로 스폰합니다.
-/// 70% 확률로 직선형, 30% 확률로 타겟형을 스폰합니다.
+/// 3가지 타입의 적을 확률적으로 스폰합니다.
 /// </summary>
 public class EnemySpawner : MonoBehaviour
 {
     [Header("스폰 설정")]
-    public GameObject StraightEnemyPrefab;  // 직선형 적 프리팹 (70%)
-    public GameObject TargetEnemyPrefab;    // 타겟형 적 프리팹 (30%)
+    public GameObject NormalEnemyPrefab;    // 일반 적 프리팹
+    public GameObject StraightEnemyPrefab;  // 직선형 적 프리팹
+    public GameObject TargetEnemyPrefab;    // 타겟형 적 프리팹
     public Transform SpawnPoint;            // 적이 스폰될 위치
 
     [Header("스폰 주기 (랜덤)")]
     public float MinSpawnTime = 1.0f;
     public float MaxSpawnTime = 3.0f;
 
-    [Header("스폰 확률")]
+    [Header("스폰 확률 (합계 100%)")]
     [Range(0f, 100f)]
-    public float StraightEnemyProbability = 70f; // 직선형 적 스폰 확률 (%)
+    public float NormalEnemyProbability = 33f;   // 일반 적 스폰 확률 (%)
+    [Range(0f, 100f)]
+    public float StraightEnemyProbability = 33f; // 직선형 적 스폰 확률 (%)
+    [Range(0f, 100f)]
+    public float TargetEnemyProbability = 34f;   // 타겟형 적 스폰 확률 (%)
 
     private float _nextSpawnTime;
 
@@ -46,7 +51,7 @@ public class EnemySpawner : MonoBehaviour
     }
 
     /// <summary>
-    /// 확률에 따라 직선형 또는 타겟형 적을 스폰합니다.
+    /// 확률에 따라 일반, 직선형 또는 타겟형 적을 스폰합니다.
     /// </summary>
     void SpawnEnemy()
     {
@@ -59,29 +64,37 @@ public class EnemySpawner : MonoBehaviour
         // 0~100 사이의 랜덤 값 생성
         float randomValue = Random.Range(0f, 100f);
         GameObject enemyToSpawn = null;
+        string enemyType = "";
 
         // 확률에 따라 적 선택
-        if (randomValue < StraightEnemyProbability)
+        if (randomValue < NormalEnemyProbability)
         {
-            // 70% - 직선형 적
+            // 일반 적
+            enemyToSpawn = NormalEnemyPrefab;
+            enemyType = "Normal";
+        }
+        else if (randomValue < NormalEnemyProbability + StraightEnemyProbability)
+        {
+            // 직선형 적
             enemyToSpawn = StraightEnemyPrefab;
-            Debug.Log("Spawning Straight Enemy (70%)");
+            enemyType = "Straight";
         }
         else
         {
-            // 30% - 타겟형 적
+            // 타겟형 적
             enemyToSpawn = TargetEnemyPrefab;
-            Debug.Log("Spawning Target Enemy (30%)");
+            enemyType = "Target";
         }
 
         // 선택된 적 스폰
         if (enemyToSpawn != null)
         {
             Instantiate(enemyToSpawn, SpawnPoint.position, SpawnPoint.rotation);
+            Debug.Log($"Spawning {enemyType} Enemy (확률값: {randomValue:F2})");
         }
         else
         {
-            Debug.LogWarning($"EnemySpawner: 스폰할 적 프리팹이 설정되지 않았습니다. (확률값: {randomValue})");
+            Debug.LogWarning($"EnemySpawner: 스폰할 {enemyType} 적 프리팹이 설정되지 않았습니다.");
         }
     }
 }

@@ -2,11 +2,10 @@ using UnityEngine;
 
 /// <summary>
 /// 적을 설정된 방향(기본값: 아래)으로 직선 이동시킵니다.
-/// 맵 이탈 시 자신을 파괴합니다.
-/// (이것이 'StraightEnemyPrefab'에 사용될 직선 이동 스크립트입니다.)
+/// 또한 맵 이탈 시 자신을 파괴합니다.
 /// </summary>
 [RequireComponent(typeof(Enemy), typeof(Rigidbody2D))] // Enemy와 Rigidbody2D가 반드시 필요
-public class EnemyMove : MonoBehaviour // 클래스 이름을 파일 이름과 동일하게 "EnemyMove"로 수정
+public class EnemyMoveStraight : MonoBehaviour
 {
     [Header("이동 능력치")]
     public float MoveSpeed = 3f;
