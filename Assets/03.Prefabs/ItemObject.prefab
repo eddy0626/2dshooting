@@ -103,7 +103,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   itemType: 0
-  WaitDelay: 2
+  WaitDelay: 0.1
   MoveToPlayerSpeed: 5
   SpeedBoostAmount: 50
   HealthUpAmount: 1

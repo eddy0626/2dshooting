@@ -119,8 +119,9 @@ public class Item : MonoBehaviour
                     break;
             }
 
-            // 효과를 적용했으므로 아이템 파괴
-            Destroy(gameObject);
+            
         }
+        // 효과를 적용했으므로 아이템 파괴
+        Destroy(gameObject);
     }
 }
