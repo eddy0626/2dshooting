@@ -15,7 +15,10 @@ public enum ItemType
 /// 1. 스폰 후 2초간 대기합니다.
 /// 2. 2초 후 플레이어를 향해 날아갑니다.
 /// 3. 플레이어와 충돌 시, 설정된 ItemType에 맞는 효과를 적용하고 파괴됩니다.
+///
+/// 시각 효과: 회전, 스케일 펄스, 부유, 깜빡임, 발광 효과 포함
 /// </summary>
+[RequireComponent(typeof(SpriteRenderer))]
 public class Item : MonoBehaviour
 {
     [Header("아이템 설정")]
@@ -35,6 +38,44 @@ public class Item : MonoBehaviour
     public int HealthUpAmount = 1;              // 체력 회복량
     public float AttackSpeedDecreaseAmount = 0.05f; // 공격 쿨타임 감소량
 
+    [Header("===== 시각 효과 설정 =====")]
+
+    [Header("회전 효과")]
+    [SerializeField] private bool EnableRotation = true;
+    [SerializeField] private float RotationSpeed = 180f; // 초당 회전 각도
+
+    [Header("스케일 펄스 효과")]
+    [SerializeField] private bool EnableScalePulse = true;
+    [SerializeField] private float PulseSpeed = 3f; // 펄스 속도
+    [SerializeField] private float PulseAmplitude = 0.15f; // 펄스 크기 (±15%)
+
+    [Header("부유 효과 (위아래 움직임)")]
+    [SerializeField] private bool EnableFloating = true;
+    [SerializeField] private float FloatSpeed = 2f; // 부유 속도
+    [SerializeField] private float FloatAmplitude = 0.3f; // 부유 높이
+
+    [Header("깜빡임 효과")]
+    [SerializeField] private bool EnableBlink = true;
+    [SerializeField] private float BlinkSpeed = 2f; // 깜빡임 속도
+    [SerializeField] private float MinAlpha = 0.5f; // 최소 투명도
+    [SerializeField] private float MaxAlpha = 1f; // 최대 투명도
+
+    [Header("발광 효과")]
+    [SerializeField] private bool EnableGlow = true;
+    [SerializeField] private float GlowSpeed = 3f; // 발광 속도
+    [SerializeField] private float GlowMin = 0.8f; // 최소 밝기
+    [SerializeField] private float GlowMax = 1.3f; // 최대 밝기
+
+    [Header("스프라이트 애니메이션")]
+    [SerializeField] private Animator _animator; // 선택적: 스프라이트 애니메이션
+
+    // 시각 효과용 private 변수
+    private SpriteRenderer _spriteRenderer;
+    private Vector3 _originalScale;
+    private Vector3 _startPosition;
+    private Color _originalColor;
+    private bool _isEffectsInitialized = false;
+
     /// <summary>
     /// 아이템 생성 시 호출됩니다.
     /// </summary>
@@ -52,6 +93,29 @@ public class Item : MonoBehaviour
         {
             Debug.LogWarning("Item: 'Player' 태그를 가진 오브젝트를 찾을 수 없습니다!");
         }
+
+        // 시각 효과 초기화
+        InitializeVisualEffects();
+    }
+
+    /// <summary>
+    /// 시각 효과를 초기화합니다.
+    /// </summary>
+    private void InitializeVisualEffects()
+    {
+        _spriteRenderer = GetComponent<SpriteRenderer>();
+        _originalScale = transform.localScale;
+
+        if (_spriteRenderer != null)
+        {
+            _originalColor = _spriteRenderer.color;
+        }
+
+        // Animator 자동 찾기
+        if (_animator == null)
+        {
+            _animator = GetComponent<Animator>();
+        }
     }
 
     /// <summary>
@@ -59,6 +123,14 @@ public class Item : MonoBehaviour
     /// </summary>
     void Update()
     {
+        // 시작 위치 저장 (첫 프레임 이후)
+        if (!_isEffectsInitialized && Time.frameCount > 1)
+        {
+            _startPosition = transform.position;
+            _isEffectsInitialized = true;
+        }
+
+        // === 아이템 이동 로직 ===
         // 아직 유도 상태가 아니고, 대기 시간이 지났다면
         if (!_isMovingToPlayer && Time.time >= _spawnTime + WaitDelay)
         {
@@ -72,6 +144,61 @@ public class Item : MonoBehaviour
             Vector2 direction = (_playerTransform.position - transform.position).normalized;
             // 플레이어에게로 이동
             transform.Translate(direction * MoveToPlayerSpeed * Time.deltaTime, Space.World);
+        }
+
+        // === 시각 효과 업데이트 ===
+        UpdateVisualEffects();
+    }
+
+    /// <summary>
+    /// 시각 효과를 매 프레임 업데이트합니다.
+    /// </summary>
+    private void UpdateVisualEffects()
+    {
+        // 회전 효과
+        if (EnableRotation)
+        {
+            transform.Rotate(0f, 0f, RotationSpeed * Time.deltaTime);
+        }
+
+        // 스케일 펄스 효과
+        if (EnableScalePulse)
+        {
+            float pulse = 1f + Mathf.Sin(Time.time * PulseSpeed) * PulseAmplitude;
+            transform.localScale = _originalScale * pulse;
+        }
+
+        // 부유 효과 (위아래로 움직임) - 유도 상태가 아닐 때만
+        if (EnableFloating && _isEffectsInitialized && !_isMovingToPlayer)
+        {
+            float yOffset = Mathf.Sin(Time.time * FloatSpeed) * FloatAmplitude;
+            Vector3 newPosition = _startPosition;
+            newPosition.y += yOffset;
+            transform.position = newPosition;
+        }
+
+        // 스프라이트 색상 효과
+        if (_spriteRenderer != null)
+        {
+            Color finalColor = _originalColor;
+
+            // 발광 효과
+            if (EnableGlow)
+            {
+                float glow = Mathf.Lerp(GlowMin, GlowMax, (Mathf.Sin(Time.time * GlowSpeed) + 1f) / 2f);
+                finalColor.r *= glow;
+                finalColor.g *= glow;
+                finalColor.b *= glow;
+            }
+
+            // 깜빡임 효과 (투명도 변화)
+            if (EnableBlink)
+            {
+                float alpha = Mathf.Lerp(MinAlpha, MaxAlpha, (Mathf.Sin(Time.time * BlinkSpeed) + 1f) / 2f);
+                finalColor.a = alpha;
+            }
+
+            _spriteRenderer.color = finalColor;
         }
     }
 
@@ -127,6 +254,22 @@ public class Item : MonoBehaviour
 
             // 효과를 적용했으므로 아이템 파괴 (플레이어와 충돌 시에만)
             Destroy(gameObject);
+        }
+    }
+
+    /// <summary>
+    /// 스크립트가 비활성화될 때 색상과 위치를 원래대로 복구
+    /// </summary>
+    void OnDisable()
+    {
+        if (_spriteRenderer != null)
+        {
+            _spriteRenderer.color = _originalColor;
+        }
+
+        if (_isEffectsInitialized)
+        {
+            transform.position = _startPosition;
         }
     }
 }
