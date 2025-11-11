@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="JavaScriptLibraryMappings">
+    <excludedPredefinedLibrary name="2dshooting/Library/PackageCache/com.gamelovers.mcp-unity@0d4643656803/Server~/node_modules" />
+  </component>
+</project>
