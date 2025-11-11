@@ -80,6 +80,12 @@ public class Item : MonoBehaviour
     /// </summary>
     private void OnTriggerEnter2D(Collider2D other)
     {
+        // 총알과의 충돌은 무시 (아이템은 총알에 영향받지 않음)
+        if (other.CompareTag("Bullet"))
+        {
+            return; // 총알과 충돌 시 아무것도 하지 않음
+        }
+
         // 플레이어와 충돌했는지 확인
         if (other.CompareTag("Player"))
         {
@@ -119,9 +125,8 @@ public class Item : MonoBehaviour
                     break;
             }
 
-            
+            // 효과를 적용했으므로 아이템 파괴 (플레이어와 충돌 시에만)
+            Destroy(gameObject);
         }
-        // 효과를 적용했으므로 아이템 파괴
-        Destroy(gameObject);
     }
 }

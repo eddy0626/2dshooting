@@ -36,6 +36,9 @@ public class Enemy : MonoBehaviour
     // (공격속도 아이템 확률은 나머지 10%가 됩니다)
     // ▲▲▲ [새로 추가할 변수] ▲▲▲
 
+    [Header("폭발 효과")]
+    public GameObject ExplosionPrefab; // 폭발 효과 프리팹
+
     /// <summary>
     /// 적의 초기 체력을 설정합니다.
     /// </summary>
@@ -89,11 +92,16 @@ public class Enemy : MonoBehaviour
 
         Debug.Log($"Enemy {gameObject.name} died!");
 
-        // ▼▼▼ [수정된 부분] 아이템 드랍 로직 ▼▼▼
-        TryDropItem();
-        // ▲▲▲ [수정된 부분] ▲▲▲
+        // 폭발 효과 생성
+        if (ExplosionPrefab != null)
+        {
+            Instantiate(ExplosionPrefab, transform.position, Quaternion.identity);
+        }
 
-        // 여기에 파괴 이펙트, 사운드, 점수 추가 로직을 넣을 수 있습니다.
+        // 아이템 드랍 로직
+        TryDropItem();
+
+        // 적 오브젝트 파괴
         Destroy(gameObject);
     }
 

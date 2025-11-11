@@ -23,8 +23,13 @@ public class PlayerFire : MonoBehaviour
     public float FireCooldown = 0.6f; // 총알 발사 간의 최소 시간 (쿨타임)
     public float MinFireCooldown = 0.1f; // 최소 발사 쿨타임 (아이템으로 이보다 빠르게 할 수 없음)
 
+    [Header("필살기 설정")]
+    public GameObject UltimatePrefab; // 필살기 '붐' 프리팹
+    public float UltimateCooldown = 10f; // 필살기 쿨타임 (초)
+
     private float _lastFireTime = 0f; // 마지막으로 총알을 발사한 게임 시간
     private bool _isAutoFire = true;  // 자동 공격 모드 활성화 여부 (기본값: true)
+    private float _lastUltimateTime = -999f; // 마지막 필살기 사용 시간
 
     /// <summary>
     /// MonoBehaviour가 생성된 후 첫 번째 Update 호출 전에 한 번 호출됩니다.
@@ -45,6 +50,9 @@ public class PlayerFire : MonoBehaviour
 
         // 발사 조건 확인 및 총알 발사 처리
         HandleFireInput();
+
+        // 필살기 입력 처리
+        HandleUltimateInput();
     }
 
     /// <summary>
@@ -135,5 +143,57 @@ public class PlayerFire : MonoBehaviour
                 }
             }
         }
+    }
+
+    /// <summary>
+    /// 숫자 3번 키를 눌러 필살기를 발동합니다.
+    /// 쿨타임이 지났을 경우 화면 중앙에 필살기 '붐'을 생성합니다.
+    /// </summary>
+    private void HandleUltimateInput()
+    {
+        // 3번 키를 누르면
+        if (Input.GetKeyDown(KeyCode.Alpha3))
+        {
+            // 쿨타임 확인
+            if (Time.time >= _lastUltimateTime + UltimateCooldown)
+            {
+                FireUltimate();
+                _lastUltimateTime = Time.time;
+            }
+            else
+            {
+                // 쿨타임이 아직 남아있을 때
+                float remainingCooldown = UltimateCooldown - (Time.time - _lastUltimateTime);
+                Debug.Log($"필살기 쿨타임 중! {remainingCooldown:F1}초 남음");
+            }
+        }
+    }
+
+    /// <summary>
+    /// 화면 중앙에 필살기 '붐'을 생성합니다.
+    /// </summary>
+    private void FireUltimate()
+    {
+        if (UltimatePrefab == null)
+        {
+            Debug.LogWarning("PlayerFire: UltimatePrefab이 할당되지 않았습니다!");
+            return;
+        }
+
+        // 화면 중앙 위치 계산 (카메라 위치)
+        Vector3 screenCenter = Vector3.zero;
+        if (Camera.main != null)
+        {
+            screenCenter = Camera.main.transform.position;
+            screenCenter.z = 0; // 2D이므로 Z축은 0
+        }
+        else
+        {
+            Debug.LogWarning("PlayerFire: 메인 카메라를 찾을 수 없습니다. (0, 0, 0)에 필살기를 생성합니다.");
+        }
+
+        // 필살기 생성
+        Instantiate(UltimatePrefab, screenCenter, Quaternion.identity);
+        Debug.Log("필살기 '붐' 발동!");
     }
 }
