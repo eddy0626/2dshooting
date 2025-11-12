@@ -100,7 +100,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6f49351703525b14689554796bd34785, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  EnemyPrefab: {fileID: 0}
-  SpawnPoint: {fileID: 0}
-  MinSpawnTime: 1
-  MaxSpawnTime: 3
+  normalEnemyPrefab: {fileID: 7503887101503701625, guid: f00d6d811e308c24eae171e86e35c192, type: 3}
+  straightEnemyPrefab: {fileID: 6966097721501299766, guid: ca0e55a9550e4d848b0d2a3e91927563, type: 3}
+  targetEnemyPrefab: {fileID: 4755494452395856360, guid: a549942eb6272594e9d7b11b2d321294, type: 3}
+  spawnPoint: {fileID: 0}
+  minSpawnTime: 1
+  maxSpawnTime: 3
+  normalEnemyProbability: 33
+  straightEnemyProbability: 33
+  targetEnemyProbability: 34

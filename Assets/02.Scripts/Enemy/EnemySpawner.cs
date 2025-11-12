@@ -7,22 +7,22 @@ using UnityEngine;
 public class EnemySpawner : MonoBehaviour
 {
     [Header("스폰 설정")]
-    public GameObject NormalEnemyPrefab;    // 일반 적 프리팹
-    public GameObject StraightEnemyPrefab;  // 직선형 적 프리팹
-    public GameObject TargetEnemyPrefab;    // 타겟형 적 프리팹
-    public Transform SpawnPoint;            // 적이 스폰될 위치
+    public GameObject normalEnemyPrefab;    // 일반 적 프리팹
+    public GameObject straightEnemyPrefab;  // 직선형 적 프리팹
+    public GameObject targetEnemyPrefab;    // 타겟형 적 프리팹
+    public Transform spawnPoint;            // 적이 스폰될 위치
 
     [Header("스폰 주기 (랜덤)")]
-    public float MinSpawnTime = 1.0f;
-    public float MaxSpawnTime = 3.0f;
+    public float minSpawnTime = 1.0f;
+    public float maxSpawnTime = 3.0f;
 
     [Header("스폰 확률 (합계 100%)")]
     [Range(0f, 100f)]
-    public float NormalEnemyProbability = 33f;   // 일반 적 스폰 확률 (%)
+    public float normalEnemyProbability = 33f;   // 일반 적 스폰 확률 (%)
     [Range(0f, 100f)]
-    public float StraightEnemyProbability = 33f; // 직선형 적 스폰 확률 (%)
+    public float straightEnemyProbability = 33f; // 직선형 적 스폰 확률 (%)
     [Range(0f, 100f)]
-    public float TargetEnemyProbability = 34f;   // 타겟형 적 스폰 확률 (%)
+    public float targetEnemyProbability = 34f;   // 타겟형 적 스폰 확률 (%)
 
     private float _nextSpawnTime;
 
@@ -45,7 +45,7 @@ public class EnemySpawner : MonoBehaviour
     /// </summary>
     private void SetNextSpawnTime()
     {
-        float randomDelay = Random.Range(MinSpawnTime, MaxSpawnTime);
+        float randomDelay = Random.Range(minSpawnTime, maxSpawnTime);
         _nextSpawnTime = Time.time + randomDelay;
         Debug.Log($"Next spawn in {randomDelay:F2} seconds.");
     }
@@ -55,7 +55,7 @@ public class EnemySpawner : MonoBehaviour
     /// </summary>
     void SpawnEnemy()
     {
-        if (SpawnPoint == null)
+        if (spawnPoint == null)
         {
             Debug.LogWarning("EnemySpawner: Spawn Point가 설정되지 않았습니다.");
             return;
@@ -67,29 +67,29 @@ public class EnemySpawner : MonoBehaviour
         string enemyType = "";
 
         // 확률에 따라 적 선택
-        if (randomValue < NormalEnemyProbability)
+        if (randomValue < normalEnemyProbability)
         {
             // 일반 적
-            enemyToSpawn = NormalEnemyPrefab;
+            enemyToSpawn = normalEnemyPrefab;
             enemyType = "Normal";
         }
-        else if (randomValue < NormalEnemyProbability + StraightEnemyProbability)
+        else if (randomValue < normalEnemyProbability + straightEnemyProbability)
         {
             // 직선형 적
-            enemyToSpawn = StraightEnemyPrefab;
+            enemyToSpawn = straightEnemyPrefab;
             enemyType = "Straight";
         }
         else
         {
             // 타겟형 적
-            enemyToSpawn = TargetEnemyPrefab;
+            enemyToSpawn = targetEnemyPrefab;
             enemyType = "Target";
         }
 
         // 선택된 적 스폰
         if (enemyToSpawn != null)
         {
-            Instantiate(enemyToSpawn, SpawnPoint.position, SpawnPoint.rotation);
+            Instantiate(enemyToSpawn, spawnPoint.position, spawnPoint.rotation);
             Debug.Log($"Spawning {enemyType} Enemy (확률값: {randomValue:F2})");
         }
         else

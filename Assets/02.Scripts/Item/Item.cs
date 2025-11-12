@@ -69,6 +69,11 @@ public class Item : MonoBehaviour
     [Header("스프라이트 애니메이션")]
     [SerializeField] private Animator _animator; // 선택적: 스프라이트 애니메이션
 
+    [Header("파티클 효과")]
+    [SerializeField] private ParticleSystem _idleParticle; // 아이템 주변 파티클 (상시)
+    [SerializeField] private GameObject _pickupEffectPrefab; // 획득 시 생성될 이펙트 프리팹
+    [SerializeField] private bool AutoPlayIdleParticle = true; // 자동으로 파티클 재생
+
     // 시각 효과용 private 변수
     private SpriteRenderer _spriteRenderer;
     private Vector3 _originalScale;
@@ -115,6 +120,27 @@ public class Item : MonoBehaviour
         if (_animator == null)
         {
             _animator = GetComponent<Animator>();
+        }
+
+        // 파티클 시스템 초기화
+        InitializeParticles();
+    }
+
+    /// <summary>
+    /// 파티클 시스템을 초기화하고 재생합니다.
+    /// </summary>
+    private void InitializeParticles()
+    {
+        // Idle 파티클 자동 찾기
+        if (_idleParticle == null)
+        {
+            _idleParticle = GetComponentInChildren<ParticleSystem>();
+        }
+
+        // Idle 파티클 자동 재생
+        if (_idleParticle != null && AutoPlayIdleParticle)
+        {
+            _idleParticle.Play();
         }
     }
 
@@ -220,6 +246,9 @@ public class Item : MonoBehaviour
             PlayerMove playerMove = other.GetComponent<PlayerMove>();
             PlayerFire playerFire = other.GetComponent<PlayerFire>();
 
+            // 획득 이펙트 생성 (아이템이 파괴되기 전에!)
+            PlayPickupEffect();
+
             // 설정된 아이템 유형(itemType)에 따라 다른 효과 적용
             switch (itemType)
             {
@@ -254,6 +283,31 @@ public class Item : MonoBehaviour
 
             // 효과를 적용했으므로 아이템 파괴 (플레이어와 충돌 시에만)
             Destroy(gameObject);
+        }
+    }
+
+    /// <summary>
+    /// 아이템 획득 시 파티클 효과를 재생합니다.
+    /// </summary>
+    private void PlayPickupEffect()
+    {
+        // 획득 이펙트 프리팹이 설정되어 있으면 생성
+        if (_pickupEffectPrefab != null)
+        {
+            GameObject effect = Instantiate(_pickupEffectPrefab, transform.position, Quaternion.identity);
+
+            // 이펙트가 ParticleSystem을 가지고 있으면 자동으로 파괴
+            ParticleSystem ps = effect.GetComponent<ParticleSystem>();
+            if (ps != null)
+            {
+                float duration = ps.main.duration + ps.main.startLifetime.constantMax;
+                Destroy(effect, duration);
+            }
+            else
+            {
+                // ParticleSystem이 없으면 2초 후 파괴 (기본값)
+                Destroy(effect, 2f);
+            }
         }
     }
 
