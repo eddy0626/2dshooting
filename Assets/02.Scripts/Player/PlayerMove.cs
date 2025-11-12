@@ -100,8 +100,8 @@ public class PlayerMove : MonoBehaviour
             HandleManualMovement(effectiveSpeed);
         }
 
-        // 경계 제한 및 속도 조절
-        ApplyBoundaryClamp();
+        // 워프 및 속도 조절
+        ApplyBoundaryWarp();
         HandleSpeedAdjustments();
 
         // 애니메이션 업데이트
@@ -224,11 +224,13 @@ public class PlayerMove : MonoBehaviour
         transform.Translate(directionToOrigin * ReturnToOriginSpeed * Time.deltaTime, Space.World);
     }
 
-    private void ApplyBoundaryClamp()
+    private void ApplyBoundaryWarp()
     {
         Vector3 currentPosition = transform.position;
-        currentPosition.x = Mathf.Clamp(currentPosition.x, minX, maxX);
-        currentPosition.y = Mathf.Clamp(currentPosition.y, minY, maxY);
+        if (currentPosition.x < minX) currentPosition.x = maxX;
+        else if (currentPosition.x > maxX) currentPosition.x = minX;
+        if (currentPosition.y < minY) currentPosition.y = maxY;
+        else if (currentPosition.y > maxY) currentPosition.y = minY;
         transform.position = currentPosition;
     }
 

@@ -105,29 +105,9 @@ MonoBehaviour:
   itemType: 0
   WaitDelay: 0.1
   MoveToPlayerSpeed: 5
-  SpeedBoostAmount: 1
+  SpeedBoostAmount: 50
   HealthUpAmount: 1
   AttackSpeedDecreaseAmount: 0.05
-  EnableRotation: 1
-  RotationSpeed: 180
-  EnableScalePulse: 1
-  PulseSpeed: 3
-  PulseAmplitude: 0.15
-  EnableFloating: 1
-  FloatSpeed: 2
-  FloatAmplitude: 0.3
-  EnableBlink: 1
-  BlinkSpeed: 2
-  MinAlpha: 0.5
-  MaxAlpha: 1
-  EnableGlow: 1
-  GlowSpeed: 3
-  GlowMin: 0.8
-  GlowMax: 1.3
-  _animator: {fileID: 0}
-  _idleParticle: {fileID: 0}
-  _pickupEffectPrefab: {fileID: 3280519133390621005, guid: a71be3e7990efb040a07565c43cbb198, type: 3}
-  AutoPlayIdleParticle: 1
 --- !u!50 &8855361787634097368
 Rigidbody2D:
   serializedVersion: 5
