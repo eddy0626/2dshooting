@@ -98,6 +98,17 @@ public class Enemy : MonoBehaviour
             Instantiate(ExplosionPrefab, transform.position, Quaternion.identity);
         }
 
+        // 점수 추가 (ScoreManager가 존재하는 경우에만)
+        if (ScoreManager.Instance != null)
+        {
+            Debug.Log($"Enemy {gameObject.name}: ScoreManager를 찾았습니다. 점수를 추가합니다.");
+            ScoreManager.Instance.AddScore();
+        }
+        else
+        {
+            Debug.LogError($"Enemy {gameObject.name}: ScoreManager.Instance가 null입니다! 씬에 ScoreManager 오브젝트가 있는지 확인하세요.");
+        }
+
         // 아이템 드랍 로직
         TryDropItem();
 
