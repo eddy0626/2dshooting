@@ -4,7 +4,14 @@
 TagManager:
   serializedVersion: 3
   tags:
+  - Boundary
+  - Spawner
+  - Item
+  - EnemyBullet
+  - PlayerBullet
+  - Player
   - Enemy
+  - Bullet
   layers:
   - Default
   - TransparentFX
@@ -47,6 +54,9 @@ TagManager:
     locked: 0
   - name: Foreground
     uniqueID: 3361737039
+    locked: 0
+  - name: UI
+    uniqueID: 3574148523
     locked: 0
   m_RenderingLayers:
   - Default
