@@ -111,8 +111,8 @@ MonoBehaviour:
   - {fileID: 6635880543693247449, guid: 1188b466bcbc2b14b856b805b4392b3c, type: 3}
   - {fileID: 2931909539950779346, guid: d1242d17d3a1d1e49a4664c4a03de95f, type: 3}
   _dropChance: 0.5
-  explosionEffect: {fileID: 0}
-  hitEffect: {fileID: 0}
+  explosionEffect: {fileID: 2433282508537954060, guid: 0be63072eff74e9468a2f400d9475b98, type: 3}
+  hitEffect: {fileID: 4021103657954561961, guid: 0ce0e7fa23e60434abc9155d25ceb94a, type: 3}
 --- !u!61 &1699394398432140568
 BoxCollider2D:
   m_ObjectHideFlags: 0

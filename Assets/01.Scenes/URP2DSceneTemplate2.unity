@@ -1652,7 +1652,7 @@ GameObject:
   m_Layer: 0
   m_Name: EnemySpawner
   m_TagString: Untagged
-  m_Icon: {fileID: 0}
+  m_Icon: {fileID: -964228994112308473, guid: 0000000000000000d000000000000000, type: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
@@ -1688,8 +1688,8 @@ MonoBehaviour:
   _minSpawnInterval: 1
   _maxSpawnInterval: 3
   _straightEnemyChance: 0.7
-  _spawnMinX: -8
-  _spawnMaxX: 8
+  _spawnMinX: -3
+  _spawnMaxX: 3
   _spawnY: 6
   _isSpawning: 1
   _maxEnemyCount: 20

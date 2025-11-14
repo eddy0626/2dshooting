@@ -155,7 +155,7 @@ BoxCollider2D:
   m_SpriteTilingProperty:
     border: {x: 0, y: 0, z: 0, w: 0}
     pivot: {x: 0.5, y: 0.5}
-    oldSize: {x: 0.16, y: 0.16}
+    oldSize: {x: 0.6666667, y: 0.6666667}
     newSize: {x: 0.16, y: 0.16}
     adaptiveTilingThreshold: 0.5
     drawMode: 0
@@ -207,4 +207,4 @@ MonoBehaviour:
   _rotationSpeed: 180
   _bobSpeed: 2
   _bobHeight: 0.2
-  _pickupParticlePrefab: {fileID: 0}
+  _pickupParticlePrefab: {fileID: 8205706795460263314, guid: 07997dd9980ef1d4eb145ea46659f187, type: 3}
